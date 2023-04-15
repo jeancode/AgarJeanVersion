@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            margin: 0px;
+        }
+
+        #contenido{
+            width: 100%;
+            height: 100vh;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+    <!--include jquery-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function(){
+
+            //select can
+            var can = document.getElementById("can");
+            //get context
+            var ctx = can.getContext("2d");
+
+            //set width and height
+            can.width = $("#contenido").width();
+            can.height = $("#contenido").height();
+
+
+            //users
+            var users = [];
+            var comida= [];
+
+            //funcion para crear un usuario
+            function addUser(){
+
+                let userColorRandom = "rgb(" + Math.random() * 255 + "," + Math.random() * 255 + "," + Math.random() * 255 + ")";
+
+                let user = {
+                    width: 20,
+                    height: 20,
+                    x: 100,
+                    y:100,
+                    color: userColorRandom,
+                    velX: 0,
+                    velY: 0,
+                    speed: 1,
+                    points: 0,
+                }
+
+                users.push(user);
+
+            }
+
+            function renderUsers(){
+
+                for(let i = 0; i < users.length; i++){
+
+                    //circle   tamaño minimo 10 y que aumente con los puntos
+                    ctx.beginPath();
+                    ctx.arc(users[i].x, users[i].y, users[i].width, 0, Math.PI * 2);
+                    ctx.fillStyle = users[i].color;
+                    ctx.fill();
+                    ctx.closePath();
+
+                    let po  = users[i].points.toFixed(1).toString();
+                    
+                    let positionCenterX = users[i].x - (po.length * 3);
+                    let positionCenterY = users[i].y + 5;
+ 
+                    let pointSizeText = (po.length * 3).toString() + "px Arial";
+                    
+                    //text points
+                    ctx.beginPath();
+                    ctx.font = pointSizeText;
+                    ctx.fillStyle = "white";
+                    ctx.fillText(po, positionCenterX, positionCenterY);
+                    ctx.closePath();
+
+            
+                
+                
+                }
+
+
+            }
+            //function move user
+            function moveUser(){
+
+                for(let i = 0; i < users.length; i++){
+
+                    users[i].x += users[i].velX;
+                    users[i].y += users[i].velY;
+
+                }
+
+            }
+            //function render comida
+            function renderComida(){
+
+                for(let i = 0; i < comida.length; i++){
+
+                    //circle    
+                    ctx.beginPath();
+                    ctx.arc(comida[i].x, comida[i].y, comida[i].width, 0, Math.PI * 2);
+                    ctx.fillStyle = comida[i].color;
+                    ctx.fill();
+                    ctx.closePath();
+                }
+            }
+
+            //function add comida
+            function addComida(){
+
+                //posicion aleatoria del tamaño del canvas
+                let x = Math.random() * can.width;
+                let y = Math.random() * can.height;
+
+                //random color
+                let color = "rgb(" + Math.random() * 255 + "," + Math.random() * 255 + "," + Math.random() * 255 + ")";
+
+                let com = {
+                    width: 10,
+                    height: 10,
+                    x: x,
+                    y:y,
+                    color: color,
+                    points:Math.random() * 5,
+                }
+
+                comida.push(com);
+
+                console.log(com);
+
+            }
+
+            //comparar colisiones con el tamaño del usuario y la comida
+            function colision(){
+                //recorremos los  usuarios
+                for(let i = 0; i < users.length; i++){
+
+                    //recorremos la comida
+                    for(let j = 0; j < comida.length; j++){
+
+                        //comparar colisiones con un radio del tamaño del usuario
+                        if(users[i].x + users[i].width > comida[j].x - comida[j].width && users[i].x - users[i].width < comida[j].x + comida[j].width && users[i].y + users[i].height > comida[j].y - comida[j].height && users[i].y - users[i].height < comida[j].y + comida[j].height){
+
+                            //añadir puntos al usuario
+                            users[i].points += comida[j].points;
+
+                            //eliminar comida
+                            comida.splice(j, 1);
+
+                            //añadir comida
+                            addComida();
+
+                            //size
+                            users[i].width += 1;
+                            users[i].height += 1;
+
+                            //velocidad
+
+                        }
+                       
+                    
+                    }
+
+                }
+         
+            }
+
+            //render grid 
+            function griRender(w,h,nw,nh){
+
+                for(let i = 0; i < w; i += nw){
+
+                    for(let j = 0; j < h; j += nh){
+
+                        ctx.beginPath();
+                        ctx.rect(i, j, nw, nh);
+                        ctx.strokeStyle = "rgba(255,255,255,0.2)";
+                        ctx.stroke();
+                        ctx.closePath();
+
+                    }
+
+                }
+
+            }
+
+            addUser();
+
+            //añadir 100 de comida
+            for(let i = 0; i < 100; i++){
+
+                addComida();
+
+            }
+
+            //loop para crear comida aleatoria cada 2 segundos
+            setInterval(function(){
+
+                addComida();
+                addComida();
+                addComida();
+                addComida();
+                
+
+            }, 500);
+
+
+            setInterval(function(){
+
+                
+
+                ctx.clearRect(0, 0, can.width, can.height);
+
+                griRender(can.width, can.height, 20, 20);
+                renderUsers();
+                moveUser();
+                renderComida();
+                colision();
+                
+                
+
+            }, 13);
+
+
+
+            //events keyboard up, down, left, right
+
+            $(document).keydown(function(e){
+
+                if(e.keyCode == 37){
+                    users[0].velX = -users[0].speed;
+                }
+
+                if(e.keyCode == 38){
+                    users[0].velY = -users[0].speed;
+                }
+
+                if(e.keyCode == 39){
+                    users[0].velX = users[0].speed;
+                }
+
+                if(e.keyCode == 40){
+                    users[0].velY = users[0].speed;
+                }
+
+            });
+
+            //events keyboard up, down, left, right
+
+            $(document).keyup(function(e){
+
+                if(e.keyCode == 37){
+                    users[0].velX = -0.1;
+                }
+
+                if(e.keyCode == 38){
+                    users[0].velY = -0.1;
+                }
+
+                if(e.keyCode == 39){
+                    users[0].velX = 0.1;
+                }
+
+                if(e.keyCode == 40){
+                    users[0].velY = 0.1;
+                }
+
+            });
+
+            
+
+            
+
+        });
+    </script>
+</head>
+<body>
+
+    <div id="contenido">
+
+        <canvas id="can"></canvas>
+
+
+    </div>
+    
+</body>
+</html>
